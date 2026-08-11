@@ -1,4 +1,4 @@
-package com.ledgerpay.service.impl;
+package com.ledgerpay.service;
 
 import com.ledgerpay.dto.RegisterRequest;
 import com.ledgerpay.dto.UserResponse;
@@ -9,7 +9,6 @@ import com.ledgerpay.entity.User;
 import com.ledgerpay.exception.EmailAlreadyExistsException;
 import com.ledgerpay.repository.AccountRepository;
 import com.ledgerpay.repository.UserRepository;
-import com.ledgerpay.service.UserService;
 import com.ledgerpay.util.AccountUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
