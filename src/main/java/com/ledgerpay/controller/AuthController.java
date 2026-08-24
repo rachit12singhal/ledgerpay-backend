@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.ledgerpay.dto.response.LoginResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,9 +33,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest request) {
-        UserResponse userResponse = authService.login(request);
-        return new ResponseEntity<>(userResponse, HttpStatus.OK);
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        LoginResponse loginResponse = authService.login(request);
+
+        return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
 
 }

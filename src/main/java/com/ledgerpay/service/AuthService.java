@@ -1,10 +1,9 @@
 package com.ledgerpay.service;
 
 import com.ledgerpay.dto.LoginRequest;
-import com.ledgerpay.dto.UserResponse;
+import com.ledgerpay.dto.response.LoginResponse;
 
 public interface AuthService {
 
-    UserResponse login(LoginRequest request);
-
+    LoginResponse login(LoginRequest request);
 }

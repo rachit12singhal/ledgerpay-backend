@@ -7,23 +7,27 @@ import com.ledgerpay.exception.InvalidCredentialsException;
 import com.ledgerpay.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.ledgerpay.dto.response.LoginResponse;
+import com.ledgerpay.util.JwtUtil;
 
 @Service
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final JwtUtil jwtUtil;
     public AuthServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
-
     @Override
-    public UserResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("Invalid email or password"));
 
         boolean passwordMatches = passwordEncoder.matches(
                 request.getPassword(),
@@ -34,12 +38,14 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        return UserResponse.builder()
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return LoginResponse.builder()
+                .token(token)
                 .id(user.getId())
                 .fullName(user.getFullname())
                 .email(user.getEmail())
                 .createdAt(user.getCreatedAt())
                 .build();
     }
-
 }
