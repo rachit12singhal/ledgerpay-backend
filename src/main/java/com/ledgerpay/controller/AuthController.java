@@ -1,6 +1,6 @@
 package com.ledgerpay.controller;
 
-import com.ledgerpay.dto.LoginRequest;
+import com.ledgerpay.dto.request.LoginRequest;
 import com.ledgerpay.dto.RegisterRequest;
 import com.ledgerpay.dto.UserResponse;
 import com.ledgerpay.service.AuthService;

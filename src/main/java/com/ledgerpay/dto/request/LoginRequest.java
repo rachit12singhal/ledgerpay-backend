@@ -1,4 +1,4 @@
-package com.ledgerpay.dto;
+package com.ledgerpay.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
