@@ -1,8 +1,14 @@
 package com.ledgerpay.controller;
 
+import com.ledgerpay.dto.request.DepositRequest;
 import com.ledgerpay.dto.response.AccountResponse;
 import com.ledgerpay.service.AccountService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,4 +26,11 @@ public class AccountController {
     public AccountResponse getAccount() {
         return accountService.getCurrentUserAccount();
     }
+
+    @PostMapping("/deposit")
+    public ResponseEntity<AccountResponse> deposit(@Valid @RequestBody DepositRequest request) {
+        AccountResponse response = accountService.deposit(request);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }
