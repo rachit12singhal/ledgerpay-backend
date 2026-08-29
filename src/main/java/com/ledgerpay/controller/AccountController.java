@@ -1,6 +1,7 @@
 package com.ledgerpay.controller;
 
 import com.ledgerpay.dto.request.DepositRequest;
+import com.ledgerpay.dto.request.WithdrawRequest;
 import com.ledgerpay.dto.response.AccountResponse;
 import com.ledgerpay.service.AccountService;
 import jakarta.validation.Valid;
@@ -30,6 +31,12 @@ public class AccountController {
     @PostMapping("/deposit")
     public ResponseEntity<AccountResponse> deposit(@Valid @RequestBody DepositRequest request) {
         AccountResponse response = accountService.deposit(request);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<AccountResponse> withdraw(@Valid @RequestBody WithdrawRequest request) {
+        AccountResponse response = accountService.withdraw(request);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
