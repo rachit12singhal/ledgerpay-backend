@@ -12,4 +12,8 @@ public interface AccountService {
 
     AccountResponse withdraw(WithdrawRequest request);
 
+    void freezeAccount(String accountNumber);
+
+    void unfreezeAccount(String accountNumber);
+
 }

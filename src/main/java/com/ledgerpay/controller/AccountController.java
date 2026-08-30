@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +39,18 @@ public class AccountController {
     public ResponseEntity<AccountResponse> withdraw(@Valid @RequestBody WithdrawRequest request) {
         AccountResponse response = accountService.withdraw(request);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/{accountNumber}/freeze")
+    public ResponseEntity<Void> freezeAccount(@PathVariable String accountNumber) {
+        accountService.freezeAccount(accountNumber);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{accountNumber}/unfreeze")
+    public ResponseEntity<Void> unfreezeAccount(@PathVariable String accountNumber) {
+        accountService.unfreezeAccount(accountNumber);
+        return ResponseEntity.ok().build();
     }
 
 }

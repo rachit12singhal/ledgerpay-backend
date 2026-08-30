@@ -99,4 +99,44 @@ public class AccountServiceImpl implements AccountService {
                 .build();
     }
 
+    @Override
+    public void freezeAccount(String accountNumber) {
+
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException(
+                        "No account found with the given account number"));
+
+        if (account.getStatus() == AccountStatus.FROZEN) {
+            throw new InvalidTransferException("Account is already frozen");
+        }
+
+        if (account.getStatus() == AccountStatus.CLOSED) {
+            throw new InvalidTransferException("Closed account cannot be frozen");
+        }
+
+        account.setStatus(AccountStatus.FROZEN);
+
+        accountRepository.save(account);
+    }
+
+    @Override
+    public void unfreezeAccount(String accountNumber) {
+
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException(
+                        "No account found with the given account number"));
+
+        if (account.getStatus() == AccountStatus.ACTIVE) {
+            throw new InvalidTransferException("Account is already active");
+        }
+
+        if (account.getStatus() == AccountStatus.CLOSED) {
+            throw new InvalidTransferException("Closed account cannot be unfrozen");
+        }
+
+        account.setStatus(AccountStatus.ACTIVE);
+
+        accountRepository.save(account);
+    }
+
 }
