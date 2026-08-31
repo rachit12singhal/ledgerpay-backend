@@ -2,13 +2,17 @@ package com.ledgerpay.service;
 
 import com.ledgerpay.dto.request.TransferRequest;
 import com.ledgerpay.dto.response.TransactionResponse;
-import com.ledgerpay.entity.*;
+import com.ledgerpay.entity.Account;
+import com.ledgerpay.entity.AccountStatus;
+import com.ledgerpay.entity.Transaction;
+import com.ledgerpay.entity.TransactionStatus;
+import com.ledgerpay.entity.TransactionType;
+import com.ledgerpay.entity.User;
 import com.ledgerpay.exception.AccountNotFoundException;
 import com.ledgerpay.exception.InsufficientBalanceException;
 import com.ledgerpay.exception.InvalidTransferException;
 import com.ledgerpay.repository.AccountRepository;
 import com.ledgerpay.repository.TransactionRepository;
-import com.ledgerpay.service.TransactionService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +41,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .getAuthentication()
                 .getPrincipal();
 
-        Account sender = accountRepository.findByUser_Id(currentUser.getId())
+        Account sender = accountRepository.findByUserIdForUpdate(currentUser.getId())
                 .orElseThrow(() -> new AccountNotFoundException(
                         "No account found for the authenticated user"));
 
@@ -57,10 +61,10 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         Account receiver = hasAccountNumber
-                ? accountRepository.findByAccountNumber(accountNumber)
+                ? accountRepository.findByAccountNumberForUpdate(accountNumber)
                 .orElseThrow(() -> new AccountNotFoundException(
                         "No account found with the given account number"))
-                : accountRepository.findByUpiId(upiId)
+                : accountRepository.findByUpiIdForUpdate(upiId)
                 .orElseThrow(() -> new AccountNotFoundException(
                         "No account found with the given UPI ID"));
 
@@ -75,11 +79,13 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal amount = request.getAmount();
 
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidTransferException("Transfer amount must be greater than zero");
+            throw new InvalidTransferException(
+                    "Transfer amount must be greater than zero");
         }
 
         if (sender.getBalance().compareTo(amount) < 0) {
-            throw new InsufficientBalanceException("Insufficient balance for this transfer");
+            throw new InsufficientBalanceException(
+                    "Insufficient balance for this transfer");
         }
 
         sender.setBalance(sender.getBalance().subtract(amount));
@@ -113,7 +119,10 @@ public class TransactionServiceImpl implements TransactionService {
                         "No account found for the authenticated user"));
 
         List<Transaction> transactions = transactionRepository
-                .findBySender_IdOrReceiver_IdOrderByCreatedAtDesc(account.getId(), account.getId());
+                .findBySender_IdOrReceiver_IdOrderByCreatedAtDesc(
+                        account.getId(),
+                        account.getId()
+                );
 
         return transactions.stream()
                 .map(this::mapToResponse)
@@ -131,5 +140,4 @@ public class TransactionServiceImpl implements TransactionService {
                 .createdAt(transaction.getCreatedAt())
                 .build();
     }
-
 }
