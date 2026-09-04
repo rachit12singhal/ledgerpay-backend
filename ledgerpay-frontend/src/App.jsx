@@ -1,6 +1,12 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate
+} from 'react-router-dom';
 
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Transfer from './pages/Transfer';
 import MyAccount from './pages/MyAccount';
@@ -28,6 +34,7 @@ function App() {
                 <Routes>
 
                     {/* Authentication */}
+
                     <Route
                         path="/login"
                         element={<Login />}
@@ -35,36 +42,39 @@ function App() {
 
                     <Route
                         path="/register"
-                        element={
-                            <Placeholder title="Register" />
-                        }
+                        element={<Register />}
                     />
 
                     {/* Customer Dashboard */}
+
                     <Route
                         path="/dashboard"
                         element={<Dashboard />}
                     />
 
                     {/* My Account */}
+
                     <Route
                         path="/my-account"
                         element={<MyAccount />}
                     />
 
                     {/* Money Transfer */}
+
                     <Route
                         path="/transfer"
                         element={<Transfer />}
                     />
 
                     {/* Transactions */}
+
                     <Route
                         path="/transactions"
                         element={<Transactions />}
                     />
 
                     {/* Admin */}
+
                     <Route
                         path="/admin"
                         element={
@@ -73,11 +83,13 @@ function App() {
                     />
 
                     {/* Fallback */}
+
                     <Route
                         path="*"
                         element={
-                            <Placeholder
-                                title="Welcome to LedgerPay"
+                            <Navigate
+                                to="/login"
+                                replace
                             />
                         }
                     />
