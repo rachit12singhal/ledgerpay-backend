@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Transfer from './pages/Transfer';
 import MyAccount from './pages/MyAccount';
 import Transactions from './pages/Transactions';
+import Admin from './pages/Admin';
 
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -91,12 +92,14 @@ function App() {
                         }
                     />
 
-                    {/* Admin */}
+                    {/* Admin Dashboard */}
 
                     <Route
                         path="/admin"
                         element={
-                            <Placeholder title="Admin" />
+                            <ProtectedRoute>
+                                <Admin />
+                            </ProtectedRoute>
                         }
                     />
 
