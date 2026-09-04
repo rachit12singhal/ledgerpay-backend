@@ -20,6 +20,29 @@ function Dashboard() {
     const [transactionError, setTransactionError] = useState('');
     const [transactionSuccess, setTransactionSuccess] = useState('');
 
+    const isAdmin = () => {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            return false;
+        }
+
+        try {
+            const payload = JSON.parse(
+                atob(
+                    token
+                        .split('.')[1]
+                        .replace(/-/g, '+')
+                        .replace(/_/g, '/')
+                )
+            );
+
+            return payload.role === 'ADMIN';
+        } catch (error) {
+            return false;
+        }
+    };
+
     useEffect(() => {
         fetchDashboardData();
     }, []);
@@ -288,6 +311,19 @@ function Dashboard() {
                     >
                         Transactions
                     </a>
+
+                    {isAdmin() && (
+                        <a
+                            href="#"
+                            className="sidebar-nav-item"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                navigate('/admin');
+                            }}
+                        >
+                            Admin Dashboard
+                        </a>
+                    )}
 
                 </nav>
 
