@@ -1,0 +1,256 @@
+/* ==========================================================================
+   Transfer Page
+   ========================================================================== */
+
+.transfer-page {
+    min-height: 100vh;
+    width: 100%;
+    background-color: #f4f6f9;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 3rem 1.5rem;
+    box-sizing: border-box;
+}
+
+.transfer-card {
+    width: 100%;
+    max-width: 520px;
+    background-color: #ffffff;
+    border: 1px solid #e5e9f0;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(15, 33, 68, 0.07);
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.transfer-header {
+    margin-bottom: 2rem;
+}
+
+.transfer-back-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 1.25rem;
+    color: #1f4e8c;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.transfer-back-button:hover {
+    text-decoration: underline;
+}
+
+.transfer-header h1 {
+    margin: 0 0 0.4rem 0;
+    color: #0f2144;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.transfer-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   Form
+   ========================================================================== */
+
+.transfer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.transfer-form-group,
+.transfer-method-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.transfer-form-group label,
+.transfer-method-section > label {
+    margin-bottom: 0.45rem;
+    color: #333333;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.transfer-form-group input {
+    width: 100%;
+    padding: 0.75rem 0.85rem;
+    background-color: #fbfcfe;
+    border: 1px solid #dae3ed;
+    border-radius: 6px;
+    color: #1a1a1a !important;
+    -webkit-text-fill-color: #1a1a1a !important;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.transfer-form-group input::placeholder {
+    color: #9aa3b2;
+    opacity: 1;
+}
+
+.transfer-form-group input:focus {
+    background-color: #ffffff;
+    border-color: #1f4e8c;
+    box-shadow: 0 0 0 3px rgba(31, 78, 140, 0.15);
+}
+
+/* ==========================================================================
+   Transfer Method
+   ========================================================================== */
+
+.transfer-method-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.transfer-method-button {
+    padding: 0.7rem;
+    background-color: #ffffff;
+    border: 1px solid #d8dee8;
+    border-radius: 6px;
+    color: #555555;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease,
+            color 0.15s ease;
+}
+
+.transfer-method-button:hover {
+    border-color: #1f4e8c;
+    color: #1f4e8c;
+}
+
+.transfer-method-button.active {
+    background-color: #eef4fb;
+    border-color: #1f4e8c;
+    color: #1f4e8c;
+}
+
+/* ==========================================================================
+   Amount
+   ========================================================================== */
+
+.transfer-amount-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #dae3ed;
+    border-radius: 6px;
+    background-color: #fbfcfe;
+    overflow: hidden;
+}
+
+.transfer-amount-wrapper span {
+    padding-left: 0.85rem;
+    color: #555555;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.transfer-amount-wrapper input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75rem 0.5rem;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #1a1a1a !important;
+    -webkit-text-fill-color: #1a1a1a !important;
+    font-size: 0.95rem;
+}
+
+.transfer-amount-wrapper:focus-within {
+    background-color: #ffffff;
+    border-color: #1f4e8c;
+    box-shadow: 0 0 0 3px rgba(31, 78, 140, 0.15);
+}
+
+/* ==========================================================================
+   Messages
+   ========================================================================== */
+
+.transfer-error {
+    margin: 0;
+    padding: 0.75rem;
+    background-color: #fff4f3;
+    border: 1px solid #f0c8c4;
+    border-radius: 6px;
+    color: #c0392b;
+    font-size: 0.85rem;
+}
+
+.transfer-success {
+    margin: 0;
+    padding: 0.75rem;
+    background-color: #f1faf5;
+    border: 1px solid #c5e6d2;
+    border-radius: 6px;
+    color: #1f8a4c;
+    font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   Submit Button
+   ========================================================================== */
+
+.transfer-submit-button {
+    width: 100%;
+    padding: 0.8rem;
+    margin-top: 0.25rem;
+    background-color: #1f4e8c;
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.transfer-submit-button:hover {
+    background-color: #163a6b;
+}
+
+.transfer-submit-button:disabled {
+    background-color: #8fa8c5;
+    cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 480px) {
+    .transfer-page {
+        padding: 1.5rem 1rem;
+    }
+
+    .transfer-card {
+        padding: 1.5rem;
+    }
+
+    .transfer-header h1 {
+        font-size: 1.35rem;
+    }
+
+    .transfer-method-buttons {
+        grid-template-columns: 1fr;
+    }
+}
