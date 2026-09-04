@@ -12,6 +12,8 @@ import Transfer from './pages/Transfer';
 import MyAccount from './pages/MyAccount';
 import Transactions from './pages/Transactions';
 
+import ProtectedRoute from './components/ProtectedRoute';
+
 import './App.css';
 
 function Placeholder({ title }) {
@@ -49,28 +51,44 @@ function App() {
 
                     <Route
                         path="/dashboard"
-                        element={<Dashboard />}
+                        element={
+                            <ProtectedRoute>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        }
                     />
 
                     {/* My Account */}
 
                     <Route
                         path="/my-account"
-                        element={<MyAccount />}
+                        element={
+                            <ProtectedRoute>
+                                <MyAccount />
+                            </ProtectedRoute>
+                        }
                     />
 
                     {/* Money Transfer */}
 
                     <Route
                         path="/transfer"
-                        element={<Transfer />}
+                        element={
+                            <ProtectedRoute>
+                                <Transfer />
+                            </ProtectedRoute>
+                        }
                     />
 
                     {/* Transactions */}
 
                     <Route
                         path="/transactions"
-                        element={<Transactions />}
+                        element={
+                            <ProtectedRoute>
+                                <Transactions />
+                            </ProtectedRoute>
+                        }
                     />
 
                     {/* Admin */}
