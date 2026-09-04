@@ -87,6 +87,10 @@ public class SecurityConfig {
                                 "/api/account/*/unfreeze"
                         ).hasAuthority("ADMIN")
 
+                        .requestMatchers(
+                                "/api/admin/**"
+                        ).hasAuthority("ADMIN")
+
                         .anyRequest().authenticated()
                 )
 
