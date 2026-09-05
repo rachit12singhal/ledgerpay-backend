@@ -12,9 +12,11 @@ import com.ledgerpay.util.JwtUtil;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+
     public AuthServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            JwtUtil jwtUtil) {
@@ -22,12 +24,15 @@ public class AuthServiceImpl implements AuthService {
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
     }
+
     @Override
     public LoginResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
-                        new InvalidCredentialsException("Invalid email or password"));
+                        new InvalidCredentialsException(
+                                "Invalid email or password"
+                        ));
 
         boolean passwordMatches = passwordEncoder.matches(
                 request.getPassword(),
@@ -35,10 +40,15 @@ public class AuthServiceImpl implements AuthService {
         );
 
         if (!passwordMatches) {
-            throw new InvalidCredentialsException("Invalid email or password");
+            throw new InvalidCredentialsException(
+                    "Invalid email or password"
+            );
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().name()
+        );
 
         return LoginResponse.builder()
                 .token(token)

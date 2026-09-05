@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import './Transactions.css';
+import AppLayout from '../components/AppLayout';
+import TransactionTable from '../components/TransactionTable';
+import { handleUnauthorized } from '../utils/auth';
+import { getApiErrorMessage } from '../utils/format';
 
 function Transactions() {
     const navigate = useNavigate();
@@ -10,143 +13,52 @@ function Transactions() {
     const [isLoading, setIsLoading] = useState(true);
     const [apiError, setApiError] = useState('');
 
-    useEffect(() => {
-        fetchTransactions();
-    }, []);
-
     const fetchTransactions = async () => {
         try {
             const response = await api.get('/api/transactions');
-
-            const transactionData = response.data;
-
-            if (Array.isArray(transactionData)) {
-                setTransactions(transactionData);
-            } else if (
-                transactionData &&
-                Array.isArray(transactionData.transactions)
-            ) {
-                setTransactions(transactionData.transactions);
-            } else {
-                setTransactions([]);
-            }
+            setTransactions(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
-            if (error.response) {
-                if (error.response.status === 401) {
-                    localStorage.removeItem('token');
-                    navigate('/login');
-                    return;
-                }
+            if (error.response?.status === 401) {
+                handleUnauthorized(navigate);
+                return;
             }
-
-            setApiError('Unable to load your transactions. Please try again later.');
+            setApiError(getApiErrorMessage(error, 'Unable to load your transactions. Please try again later.'));
         } finally {
             setIsLoading(false);
         }
     };
 
-    const formatDate = (dateValue) => {
-        if (!dateValue) {
-            return '--';
-        }
-
-        const date = new Date(dateValue);
-
-        if (Number.isNaN(date.getTime())) {
-            return dateValue;
-        }
-
-        return date.toLocaleString();
-    };
-
-    const getTransactionType = (transaction) => {
-        return (
-            transaction.type ||
-            transaction.transactionType ||
-            transaction.transaction_type ||
-            '--'
-        );
-    };
-
-    const getTransactionAmount = (transaction) => {
-        return (
-            transaction.amount ??
-            transaction.transactionAmount ??
-            '--'
-        );
-    };
-
-    const getTransactionStatus = (transaction) => {
-        return transaction.status || 'SUCCESS';
-    };
-
-    const getTransactionDate = (transaction) => {
-        return (
-            transaction.createdAt ||
-            transaction.timestamp ||
-            transaction.created_at ||
-            transaction.date
-        );
-    };
+    useEffect(() => {
+        fetchTransactions();
+    }, []);
 
     return (
-        <div className="transactions-page">
-            <div className="transactions-card">
-                <div className="transactions-header">
-                    <h1 className="transactions-title">Transactions</h1>
-                    <button
-                        className="back-to-dashboard-button"
-                        onClick={() => navigate('/dashboard')}
-                    >
-                        Back to Dashboard
-                    </button>
+        <AppLayout title="Transactions" subtitle="Your complete transaction history">
+            {isLoading && (
+                <div className="loading-state">
+                    <p>Loading your transactions...</p>
                 </div>
+            )}
 
-                {isLoading && (
-                    <div className="transactions-status">
-                        <p>Loading your transactions...</p>
-                    </div>
-                )}
+            {!isLoading && apiError && <div className="alert alert--error">{apiError}</div>}
 
-                {!isLoading && apiError && (
-                    <div className="transactions-status transactions-error">
-                        <p>{apiError}</p>
-                    </div>
-                )}
-
-                {!isLoading && !apiError && transactions.length === 0 && (
-                    <div className="transactions-empty-state">
-                        <p>No recent transactions</p>
-                    </div>
-                )}
-
-                {!isLoading && !apiError && transactions.length > 0 && (
-                    <div className="transactions-table-wrapper">
-                        <table className="transactions-table">
-                            <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                            </thead>
-
-                            <tbody>
-                            {transactions.map((transaction, index) => (
-                                <tr key={transaction.id ?? index}>
-                                    <td>{getTransactionType(transaction)}</td>
-                                    <td>₹{getTransactionAmount(transaction)}</td>
-                                    <td>{getTransactionStatus(transaction)}</td>
-                                    <td>{formatDate(getTransactionDate(transaction))}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
-        </div>
+            {!isLoading && !apiError && (
+                <section className="card">
+                    <h2 className="card__title">Transaction History</h2>
+                    <p className="card__subtitle">
+                        {transactions.length > 0
+                            ? `${transactions.length} transaction${transactions.length === 1 ? '' : 's'} on record`
+                            : 'All your account activity in one place'}
+                    </p>
+                    <TransactionTable
+                        transactions={transactions}
+                        showParties
+                        emptyMessage="No transactions found"
+                        emptyHint="Once you deposit, withdraw, or transfer money, your transactions will show up here."
+                    />
+                </section>
+            )}
+        </AppLayout>
     );
 }
 

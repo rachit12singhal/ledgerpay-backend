@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import './Login.css';
+import { storeUser } from '../utils/auth';
+import { getApiErrorMessage } from '../utils/format';
+import { IconBank } from '../components/Icons';
 
 function Login() {
     const navigate = useNavigate();
@@ -12,64 +14,37 @@ function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState('');
 
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [navigate]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         const newErrors = {};
-
-        if (!email.trim()) {
-            newErrors.email = 'Email is required';
-        }
-
-        if (!password.trim()) {
-            newErrors.password = 'Password is required';
-        }
+        if (!email.trim()) newErrors.email = 'Email is required';
+        if (!password.trim()) newErrors.password = 'Password is required';
 
         setErrors(newErrors);
         setApiError('');
 
-        if (Object.keys(newErrors).length > 0) {
-            return;
-        }
+        if (Object.keys(newErrors).length > 0) return;
 
         setIsLoading(true);
 
         try {
-            const response = await api.post('/api/auth/login', {
-                email,
-                password,
-            });
-
-            console.log('Login response:', response.data);
-
-            const token = response.data.token;
+            const response = await api.post('/api/auth/login', { email, password });
+            const { token, id, fullName, email: userEmail, createdAt } = response.data;
 
             localStorage.setItem('token', token);
-
-            console.log('Login successful. Token stored.');
+            storeUser({ id, fullName, email: userEmail, createdAt });
 
             navigate('/dashboard');
-
         } catch (error) {
-            console.error('Login error:', error);
-
-            if (error.response) {
-                console.log('Status:', error.response.status);
-                console.log('Response data:', error.response.data);
-            } else if (error.request) {
-                console.log(
-                    'No response received from backend:',
-                    error.request
-                );
-            } else {
-                console.log(
-                    'Request setup error:',
-                    error.message
-                );
-            }
-
             setApiError(
-                'Login failed. Please check your email and password.'
+                getApiErrorMessage(error, 'Login failed. Please check your email and password.')
             );
         } finally {
             setIsLoading(false);
@@ -77,84 +52,58 @@ function Login() {
     };
 
     return (
-        <div className="login-page">
-            <div className="login-card">
-
-                <div className="login-logo">
-                    LedgerPay
+        <div className="auth-page">
+            <div className="auth-card">
+                <div className="auth-brand-wrap">
+                    <div className="auth-brand-icon">
+                        <IconBank />
+                    </div>
+                    <div className="auth-brand">LedgerPay</div>
+                    <p className="auth-tagline">Secure digital banking</p>
                 </div>
+                <h1 className="auth-heading">Welcome Back</h1>
 
-                <h1 className="login-heading">
-                    Welcome Back
-                </h1>
-
-                <form onSubmit={handleSubmit} noValidate>
-
+                <form onSubmit={handleSubmit} className="auth-form" noValidate>
                     <div className="form-group">
-                        <label htmlFor="email">
-                            Email
-                        </label>
-
+                        <label htmlFor="email">Email</label>
                         <input
                             id="email"
                             type="email"
+                            className="form-input"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Enter your email"
+                            disabled={isLoading}
+                            autoComplete="email"
                         />
-
-                        {errors.email && (
-                            <p className="field-error">
-                                {errors.email}
-                            </p>
-                        )}
+                        {errors.email && <p className="field-error">{errors.email}</p>}
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="password">
-                            Password
-                        </label>
-
+                        <label htmlFor="password">Password</label>
                         <input
                             id="password"
                             type="password"
+                            className="form-input"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Enter your password"
+                            disabled={isLoading}
+                            autoComplete="current-password"
                         />
-
-                        {errors.password && (
-                            <p className="field-error">
-                                {errors.password}
-                            </p>
-                        )}
+                        {errors.password && <p className="field-error">{errors.password}</p>}
                     </div>
 
-                    {apiError && (
-                        <p className="field-error">
-                            {apiError}
-                        </p>
-                    )}
+                    {apiError && <div className="alert alert--error">{apiError}</div>}
 
-                    <button
-                        type="submit"
-                        className="login-button"
-                        disabled={isLoading}
-                    >
-                        {isLoading
-                            ? 'Logging in...'
-                            : 'Login'}
+                    <button type="submit" className="btn btn--primary btn--block" disabled={isLoading}>
+                        {isLoading ? 'Logging in...' : 'Login'}
                     </button>
-
                 </form>
 
-                <p className="login-footer-text">
-                    Don't have an account?{' '}
-                    <Link to="/register">
-                        Register
-                    </Link>
+                <p className="auth-footer">
+                    Don&apos;t have an account? <Link to="/register">Register</Link>
                 </p>
-
             </div>
         </div>
     );

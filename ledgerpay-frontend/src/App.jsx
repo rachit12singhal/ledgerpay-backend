@@ -14,19 +14,9 @@ import Transactions from './pages/Transactions';
 import Admin from './pages/Admin';
 
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 
 import './App.css';
-
-function Placeholder({ title }) {
-    return (
-        <div style={{ padding: '2rem' }}>
-            <h2>{title}</h2>
-            <p>
-                This page will be implemented in a later step.
-            </p>
-        </div>
-    );
-}
 
 function App() {
     return (
@@ -97,9 +87,9 @@ function App() {
                     <Route
                         path="/admin"
                         element={
-                            <ProtectedRoute>
+                            <AdminRoute>
                                 <Admin />
-                            </ProtectedRoute>
+                            </AdminRoute>
                         }
                     />
 

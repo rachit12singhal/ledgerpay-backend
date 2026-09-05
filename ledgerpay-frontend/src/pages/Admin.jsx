@@ -1,95 +1,69 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import './Admin.css';
+import AppLayout from '../components/AppLayout';
+import StatusBadge from '../components/StatusBadge';
+import TransactionTable from '../components/TransactionTable';
+import { handleUnauthorized } from '../utils/auth';
+import { formatBalance, getApiErrorMessage } from '../utils/format';
+import { IconUsers, IconActivity, IconReceipt, IconLock } from '../components/Icons';
 
 function Admin() {
     const navigate = useNavigate();
 
     const [accounts, setAccounts] = useState([]);
     const [transactions, setTransactions] = useState([]);
-
     const [isLoading, setIsLoading] = useState(true);
     const [apiError, setApiError] = useState('');
     const [forbidden, setForbidden] = useState(false);
-
     const [processingAccountNumber, setProcessingAccountNumber] = useState(null);
-
-    useEffect(() => {
-        fetchAdminData();
-    }, []);
 
     const fetchAdminData = async () => {
         try {
-            const [accountsResponse, transactionsResponse] =
-                await Promise.all([
-                    api.get('/api/admin/accounts'),
-                    api.get('/api/admin/transactions'),
-                ]);
-
-            const accountsData = accountsResponse.data;
-            const transactionsData = transactionsResponse.data;
-
-            if (Array.isArray(accountsData)) {
-                setAccounts(accountsData);
-            } else if (accountsData && Array.isArray(accountsData.accounts)) {
-                setAccounts(accountsData.accounts);
-            } else {
-                setAccounts([]);
-            }
-
-            if (Array.isArray(transactionsData)) {
-                setTransactions(transactionsData);
-            } else if (
-                transactionsData &&
-                Array.isArray(transactionsData.transactions)
-            ) {
-                setTransactions(transactionsData.transactions);
-            } else {
-                setTransactions([]);
-            }
-
             setApiError('');
+
+            const [accountsResponse, transactionsResponse] = await Promise.all([
+                api.get('/api/admin/accounts'),
+                api.get('/api/admin/transactions'),
+            ]);
+
+            setAccounts(Array.isArray(accountsResponse.data) ? accountsResponse.data : []);
+            setTransactions(Array.isArray(transactionsResponse.data) ? transactionsResponse.data : []);
             setForbidden(false);
         } catch (error) {
-            if (error.response) {
-                if (error.response.status === 401) {
-                    localStorage.removeItem('token');
-                    navigate('/login');
-                    return;
-                }
-
-                if (error.response.status === 403) {
-                    setForbidden(true);
-                    return;
-                }
+            if (error.response?.status === 401) {
+                handleUnauthorized(navigate);
+                return;
             }
-
-            setApiError('Unable to load admin data. Please try again later.');
+            if (error.response?.status === 403) {
+                setForbidden(true);
+                return;
+            }
+            setApiError(getApiErrorMessage(error, 'Unable to load admin data. Please try again later.'));
         } finally {
             setIsLoading(false);
         }
     };
 
+    useEffect(() => {
+        fetchAdminData();
+    }, []);
+
     const handleFreeze = async (accountNumber) => {
         setProcessingAccountNumber(accountNumber);
-
         try {
             await api.post(`/api/account/${accountNumber}/freeze`);
             await fetchAdminData();
         } catch (error) {
-            if (error.response && error.response.status === 401) {
-                localStorage.removeItem('token');
-                navigate('/login');
+            if (error.response?.status === 401) {
+                handleUnauthorized(navigate);
                 return;
             }
-
-            if (error.response && error.response.status === 403) {
+            if (error.response?.status === 403) {
                 setForbidden(true);
                 return;
             }
-
-            setApiError('Unable to freeze this account. Please try again.');
+            setApiError(getApiErrorMessage(error, 'Unable to freeze this account. Please try again.'));
         } finally {
             setProcessingAccountNumber(null);
         }
@@ -97,219 +71,203 @@ function Admin() {
 
     const handleUnfreeze = async (accountNumber) => {
         setProcessingAccountNumber(accountNumber);
-
         try {
             await api.post(`/api/account/${accountNumber}/unfreeze`);
             await fetchAdminData();
         } catch (error) {
-            if (error.response && error.response.status === 401) {
-                localStorage.removeItem('token');
-                navigate('/login');
+            if (error.response?.status === 401) {
+                handleUnauthorized(navigate);
                 return;
             }
-
-            if (error.response && error.response.status === 403) {
+            if (error.response?.status === 403) {
                 setForbidden(true);
                 return;
             }
-
-            setApiError('Unable to unfreeze this account. Please try again.');
+            setApiError(getApiErrorMessage(error, 'Unable to unfreeze this account. Please try again.'));
         } finally {
             setProcessingAccountNumber(null);
         }
     };
 
-    const formatDate = (dateValue) => {
-        if (!dateValue) {
-            return '--';
-        }
-
-        const date = new Date(dateValue);
-
-        if (Number.isNaN(date.getTime())) {
-            return dateValue;
-        }
-
-        return date.toLocaleString();
-    };
-
-    const getTransactionType = (transaction) => {
-        return (
-            transaction.type ||
-            transaction.transactionType ||
-            transaction.transaction_type ||
-            '--'
-        );
-    };
-
-    const getTransactionAmount = (transaction) => {
-        return (
-            transaction.amount ??
-            transaction.transactionAmount ??
-            '--'
-        );
-    };
-
-    const getTransactionStatus = (transaction) => {
-        return transaction.status || 'SUCCESS';
-    };
-
-    const getTransactionDate = (transaction) => {
-        return (
-            transaction.createdAt ||
-            transaction.timestamp ||
-            transaction.created_at ||
-            transaction.date
-        );
-    };
+    const totalAccounts = accounts.length;
+    const activeAccounts = accounts.filter((a) => a.status === 'ACTIVE').length;
+    const frozenAccounts = accounts.filter((a) => a.status === 'FROZEN').length;
+    const totalTransactions = transactions.length;
 
     if (isLoading) {
         return (
-            <div className="admin-page">
-                <div className="admin-status">
+            <AppLayout title="Admin Dashboard" subtitle="System overview and account management">
+                <div className="loading-state">
                     <p>Loading admin dashboard...</p>
                 </div>
-            </div>
+            </AppLayout>
         );
     }
 
     if (forbidden) {
         return (
-            <div className="admin-page">
-                <div className="admin-status admin-error">
-                    <p>You do not have permission to access the admin dashboard.</p>
-                    <button
-                        className="back-to-dashboard-button"
-                        onClick={() => navigate('/dashboard')}
-                    >
-                        Back to Dashboard
-                    </button>
+            <AppLayout title="Admin Dashboard">
+                <div className="alert alert--error">
+                    You do not have permission to access the admin dashboard.
                 </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="admin-page">
-            <div className="admin-header">
-                <h1 className="admin-title">Admin Dashboard</h1>
                 <button
-                    className="back-to-dashboard-button"
+                    type="button"
+                    className="btn btn--primary"
                     onClick={() => navigate('/dashboard')}
                 >
                     Back to Dashboard
                 </button>
-            </div>
+            </AppLayout>
+        );
+    }
 
-            {apiError && (
-                <div className="admin-status admin-error">
-                    <p>{apiError}</p>
+    return (
+        <AppLayout title="Admin Dashboard" subtitle="System overview and account management">
+            {apiError && <div className="alert alert--error">{apiError}</div>}
+
+            <section className="stats-grid">
+                <div className="stat-card">
+                    <div className="stat-card__header">
+                        <span className="stat-card__label">Total Accounts</span>
+                        <span className="stat-card__icon">
+                            <IconUsers />
+                        </span>
+                    </div>
+                    <span className="stat-card__value">{totalAccounts}</span>
                 </div>
-            )}
+                <div className="stat-card stat-card--active">
+                    <div className="stat-card__header">
+                        <span className="stat-card__label">Active Accounts</span>
+                        <span className="stat-card__icon">
+                            <IconActivity />
+                        </span>
+                    </div>
+                    <span className="stat-card__value">{activeAccounts}</span>
+                </div>
+                <div className="stat-card stat-card--frozen">
+                    <div className="stat-card__header">
+                        <span className="stat-card__label">Frozen Accounts</span>
+                        <span className="stat-card__icon">
+                            <IconLock />
+                        </span>
+                    </div>
+                    <span className="stat-card__value">{frozenAccounts}</span>
+                </div>
+                <div className="stat-card stat-card--transactions">
+                    <div className="stat-card__header">
+                        <span className="stat-card__label">Total Transactions</span>
+                        <span className="stat-card__icon">
+                            <IconReceipt />
+                        </span>
+                    </div>
+                    <span className="stat-card__value">{totalTransactions}</span>
+                </div>
+            </section>
 
-            <section className="admin-section">
-                <h2 className="admin-section-heading">All Accounts</h2>
+            <section className="card">
+                <h2 className="card__title">Account Management</h2>
+                <p className="card__subtitle">View and manage all customer accounts</p>
 
                 {accounts.length === 0 ? (
-                    <div className="admin-empty-state">
-                        <p>No accounts found</p>
+                    <div className="empty-state">
+                        <div className="empty-state__icon">
+                            <IconUsers />
+                        </div>
+                        <p className="empty-state__title">No accounts found</p>
+                        <p className="empty-state__hint">
+                            Registered customer accounts will appear here for management.
+                        </p>
                     </div>
                 ) : (
-                    <div className="admin-table-wrapper">
-                        <table className="admin-table">
+                    <div className="data-table-wrapper">
+                        <table className="data-table data-table--wide">
                             <thead>
-                            <tr>
-                                <th>Account Number</th>
-                                <th>UPI ID</th>
-                                <th>Balance</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
+                                <tr>
+                                    <th>Account Number</th>
+                                    <th>UPI ID</th>
+                                    <th>Owner</th>
+                                    <th>Balance</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
                             </thead>
-
                             <tbody>
-                            {accounts.map((account, index) => (
-                                <tr key={account.id ?? account.accountNumber ?? index}>
-                                    <td>{account.accountNumber ?? '--'}</td>
-                                    <td>{account.upiId ?? '--'}</td>
-                                    <td>₹{account.balance ?? '0.00'}</td>
-                                    <td>{account.status ?? '--'}</td>
-                                    <td>
-                                        {account.status === 'ACTIVE' && (
-                                            <button
-                                                className="admin-action-button freeze-button"
-                                                onClick={() => handleFreeze(account.accountNumber)}
-                                                disabled={
-                                                    processingAccountNumber === account.accountNumber
-                                                }
-                                            >
-                                                {processingAccountNumber === account.accountNumber
-                                                    ? 'Processing...'
-                                                    : 'Freeze'}
-                                            </button>
-                                        )}
-
-                                        {account.status === 'FROZEN' && (
-                                            <button
-                                                className="admin-action-button unfreeze-button"
-                                                onClick={() => handleUnfreeze(account.accountNumber)}
-                                                disabled={
-                                                    processingAccountNumber === account.accountNumber
-                                                }
-                                            >
-                                                {processingAccountNumber === account.accountNumber
-                                                    ? 'Processing...'
-                                                    : 'Unfreeze'}
-                                            </button>
-                                        )}
-
-                                        {account.status !== 'ACTIVE' &&
-                                            account.status !== 'FROZEN' && (
-                                                <span className="admin-no-action">--</span>
+                                {accounts.map((account, index) => (
+                                    <tr
+                                        key={account.accountNumber ?? index}
+                                        className={
+                                            account.status === 'FROZEN'
+                                                ? 'data-table__row--frozen'
+                                                : account.status === 'ACTIVE'
+                                                  ? 'data-table__row--active'
+                                                  : undefined
+                                        }
+                                    >
+                                        <td className="font-mono">{account.accountNumber ?? '--'}</td>
+                                        <td>{account.upiId ?? '--'}</td>
+                                        <td>{account.ownerFullName ?? '--'}</td>
+                                        <td className="data-table__amount">
+                                            {formatBalance(account.balance)}
+                                        </td>
+                                        <td>
+                                            <StatusBadge status={account.status} />
+                                        </td>
+                                        <td className="data-table__actions">
+                                            {account.status === 'ACTIVE' && (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn--danger btn--sm"
+                                                    onClick={() => handleFreeze(account.accountNumber)}
+                                                    disabled={
+                                                        processingAccountNumber === account.accountNumber
+                                                    }
+                                                >
+                                                    {processingAccountNumber === account.accountNumber
+                                                        ? 'Processing...'
+                                                        : 'Freeze'}
+                                                </button>
                                             )}
-                                    </td>
-                                </tr>
-                            ))}
+                                            {account.status === 'FROZEN' && (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn--success btn--sm"
+                                                    onClick={() => handleUnfreeze(account.accountNumber)}
+                                                    disabled={
+                                                        processingAccountNumber === account.accountNumber
+                                                    }
+                                                >
+                                                    {processingAccountNumber === account.accountNumber
+                                                        ? 'Processing...'
+                                                        : 'Unfreeze'}
+                                                </button>
+                                            )}
+                                            {account.status !== 'ACTIVE' &&
+                                                account.status !== 'FROZEN' && (
+                                                    <span className="text-muted">--</span>
+                                                )}
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 )}
             </section>
 
-            <section className="admin-section">
-                <h2 className="admin-section-heading">All Transactions</h2>
-
-                {transactions.length === 0 ? (
-                    <div className="admin-empty-state">
-                        <p>No transactions found</p>
-                    </div>
-                ) : (
-                    <div className="admin-table-wrapper">
-                        <table className="admin-table">
-                            <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                            </thead>
-
-                            <tbody>
-                            {transactions.map((transaction, index) => (
-                                <tr key={transaction.id ?? index}>
-                                    <td>{getTransactionType(transaction)}</td>
-                                    <td>₹{getTransactionAmount(transaction)}</td>
-                                    <td>{getTransactionStatus(transaction)}</td>
-                                    <td>{formatDate(getTransactionDate(transaction))}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+            <section className="card">
+                <h2 className="card__title">All Transactions</h2>
+                <p className="card__subtitle">
+                    {totalTransactions > 0
+                        ? `${totalTransactions} transaction${totalTransactions === 1 ? '' : 's'} across all accounts`
+                        : 'System-wide transaction activity'}
+                </p>
+                <TransactionTable
+                    transactions={transactions}
+                    showParties
+                    emptyMessage="No transactions found"
+                />
             </section>
-        </div>
+        </AppLayout>
     );
 }
 
